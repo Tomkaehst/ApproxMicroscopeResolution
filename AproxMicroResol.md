@@ -44,9 +44,9 @@ See this example
 ``` r
 curve(1/(sqrt(2*pi*0.5^2))*exp(-(x)^2/(2*0.5^2)), from = -1.5, to = 1.5, xlab = "Location [microns]", ylab = "Intensity")
 
-abline(v = 0.58875, lty = 2, lwd = 5)
-abline(v = -0.58875, lty = 2, lwd = 5)
-abline(h = 0.3989, lty = 3, lwd = 5)
+abline(v = 0.58875, lty = 2, lwd = 2)
+abline(v = -0.58875, lty = 2, lwd = 2)
+abline(h = 0.3989, lty = 3, lwd = 2)
 text(0, 0.1, " = 0.5")
 ```
 
