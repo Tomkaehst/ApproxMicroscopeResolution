@@ -71,11 +71,11 @@ $$ X\_n = \\frac{(x\_i - X\_\\min)}{(X\_\\max - X\_\\min)}$$
 .
 
 ``` r
-gauss = function(x, x0, sigma){
-  1/sqrt(2 * pi * sigma) * exp(-(x - x0)^2 / (2 * sigma)^2)
+gauss = function(x, x0, k, sigma){
+  k * 1/sqrt(2 * pi * sigma) * exp(-(x - x0)^2 / (2 * sigma)^2)
 }
 
-curve(gauss(x, 0, 1), from = -4, to = 4)
+curve(gauss(x, 0, 1, 1), from = -4, to = 4)
 ```
 
 ![](AproxMicroResol_files/figure-markdown_github/unnamed-chunk-3-1.png)
@@ -91,30 +91,37 @@ while(i <= length(dat$Y)){
 The loaded data is now fitted to the gauss()-function using the non-linear least square (nls) method, which is in the standard implementation of R. Non-linear fitting can easily go in the wrong direction and the process can get stuck at a local minimum of the error function. Therefore, we define some guesses for starting parameters by just looking at the plot of our data points. The parameter x0 for example has to be a value of around 0.4. We can also get a guess of the sigma and k value from the definition of the Rayleigh criteron and the gaussian distribution. (*Be aware that you have to convert nanometers to microns!*)
 
 ``` r
-fit = nls(dat$y.norm ~ gauss(dat$X, x0, sigma),data = dat, start = list(x0 = 0.4, sigma = 0.1), algorithm = "plinear")
+fit = nls(dat$y.norm ~ gauss(dat$X, x0, k, sigma),data = dat, start = list(x0 = 0.4, k = 1, sigma = 0.1), algorithm = "port")
 
 summary(fit)
 ```
 
     ## 
-    ## Formula: dat$y.norm ~ gauss(dat$X, x0, sigma)
+    ## Formula: dat$y.norm ~ gauss(dat$X, x0, k, sigma)
     ## 
     ## Parameters:
     ##       Estimate Std. Error t value Pr(>|t|)    
     ## x0    0.379236   0.008456   44.85 7.16e-10 ***
-    ## sigma 0.104827   0.005986   17.51 4.88e-07 ***
-    ## .lin  0.855721   0.034508   24.80 4.42e-08 ***
+    ## k     0.855721   0.034508   24.80 4.42e-08 ***
+    ## sigma 0.104826   0.005986   17.51 4.88e-07 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.0709 on 7 degrees of freedom
     ## 
-    ## Number of iterations to convergence: 7 
-    ## Achieved convergence tolerance: 9.226e-06
+    ## Algorithm "port", convergence message: relative convergence (4)
 
 ``` r
 plot(dat$X, predict(fit), type = "l")
 points(dat$X, dat$y.norm, pty = 2)
+
+FWHM = summary(fit)[[10]][3] * 2 * sqrt(2 * log(2))
+
+abline(v = (summary(fit)[[10]][1] + FWHM/2))
+abline(v = (summary(fit)[[10]][1] - FWHM/2))
+abline(h = 0.5)
 ```
 
 ![](AproxMicroResol_files/figure-markdown_github/unnamed-chunk-4-1.png)
+
+**NOTE: Find the error! This can't be right!**
