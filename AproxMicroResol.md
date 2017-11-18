@@ -30,12 +30,12 @@ print(dat)
     ## 10 0.850607 24.5000
 
 ``` r
-NA
+plot(dat, xlab = "location [??m]", ylab = "Absolute Intensity")
 ```
 
 ![](AproxMicroResol_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-1-1.png)
 
-NA
+One can get an idea about the resolution of the microscope by using the Gauss normal distribution with its equation: f(x) = k x exp(-(x - ??)^2 / (2 x sigma)^2) with k = 1 / sqrt(2 x pi x sigma).
 
 We will now fit the intensity profile to the provided data and determine the resolution approximation by calculating the Full Width at Half Maximum value (FWHM). This is the distance between the two points of the x-axis, where the function value of f is at its half maximum. By doing some algebra with the Gauss normal distribution, we can find out that this is the case at 2 x sqrt(2 x ln(2)) x sigma. expression(sigma)
 
