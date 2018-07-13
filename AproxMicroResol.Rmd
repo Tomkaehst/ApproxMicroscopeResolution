@@ -1,6 +1,6 @@
 ---
 title: "Approximating Microscopic Resolution"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -33,10 +33,8 @@ $$ k = \frac{1}{\sqrt{2 \pi \sigma^2}} $$
 We will now fit the intensity profile to the provided data and determine the resolution approximation by calculating the Full Width at Half Maximum value (FWHM). This is the distance between the two points of the x-axis, where the function value of f is at its half maximum. By doing some algebra with the Gauss normal distribution, we can find out that this is the case at $$2 \sqrt{2 ln(2)} \sigma \approx 2.355 \sigma$$
 
 See this example
-```{r}
-
-curve(1/(sqrt(2*pi*0.5^2))*exp(-(x)^2/(2*0.5^2)), from = -1.5, to = 1.5, xlab = "Location [microns]", ylab = "Intensity")
-
+```{r dat, fig.keep='all'}
+curve (1/(sqrt(2*pi*0.5^2))*exp(-(x)^2/(2*0.5^2)), from = -1.5, to = 1.5, xlab = "Location [microns]", ylab = "Intensity")
 abline(v = 0.58875, lty = 2, lwd = 2)
 abline(v = -0.58875, lty = 2, lwd = 2)
 abline(h = 0.3989, lty = 3, lwd = 2)
@@ -54,42 +52,32 @@ $$ X_n = \frac{(x_i - X_\min)}{(X_\max - X_\min)}$$.
 
 ```{r}
 gauss = function(x, x0, sigma){
-  1/sqrt(2*pi*sigma^2)*exp(-(x - x0)^2 / (2 * sigma)^2)
+  (1/(sigma * sqrt(2*pi)))*exp(-(x - x0)^2 / (2 * sigma)^2)
 }
 
-curve(gauss(x, 0, 1), from = -4, to = 4)
+curve(gauss(x, 0.4, 0.1), from = 0, to = 1)
 
-i = 1
-while(i <= length(dat$Y)){
-  dat$y.norm[i] = (dat$Y[i] - min(dat$Y))/(max(dat$Y) - min(dat$Y))
-  i = i + 1
+maxY = max(dat$Y)
+minY = min(dat$Y)
+for(i in 1:length(dat$Y)) {
+     dat$y.norm[i] = (dat$Y[i] - minY)/(maxY - minY)
 }
 
+plot(dat$X, dat$y.norm, type = "b")
 ```
 
 The loaded data is now fitted to the gauss()-function using the non-linear least square (nls) method, which is in the standard implementation of R. Non-linear fitting can easily go in the wrong direction and the process can get stuck at a local minimum of the error function. Therefore, we define some guesses for starting parameters by just looking at the plot of our data points. The parameter x0 for example has to be a value of around 0.4. We can also get a guess of the sigma and k value from the definition of the Rayleigh criteron and the gaussian distribution. (*Be aware that you have to convert nanometers to microns!*)
 
 $$\sigma_{estimate}=\frac{\lambda_{emission}}{2.355} = 0.140 $$
+
 $$k_{estimate} = \frac{1}{\sqrt{2 \pi \sigma_{estimate}^2}} $$
 
 ```{r}
-
-sigma_estimate = 330 / 2.355
-# k_estimate = (1/sqrt(2 * pi * sigma_estimate^2))
-
-fit = nls(dat$y.norm ~ gauss(dat$X, x0, sigma),data = dat, start = list(x0 = 0.4, sigma = 0.5), algorithm = "default")
-
-summary(fit)
-plot(dat$X, predict(fit), type = "l")
-points(dat$X, dat$y.norm, pty = 2)
-
-FWHM = summary(fit)[[10]][2] * 2 * sqrt(2 * log(2))
-
-abline(v = (summary(fit)[[10]][1] + FWHM/2))
-abline(v = (summary(fit)[[10]][1] - FWHM/2))
-abline(h = 0.5)
-
-plot(fitted(fit), residuals(fit), main = "Residuals")
+library(MASS)
+fit_MASS = fitdistr(dat$y.norm, "normal")
+fit_MASS$estimate
+curve(gauss(x, fit_MASS$estimate[2], fit_MASS$estimate[1]), from = -0.5, to = 1.5)
+points(dat$X, dat$y.norm, pty = 3)
 ```
 
 
